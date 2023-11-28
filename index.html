@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wawart - Dashboard</title>
+    <style>
+        body {
+           
+    font-family: 'Arial', sans-serif;
+    background-color: #000000;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background: url('wallet-outline_1.svg') center center no-repeat fixed; /* Use the correct path to your SVG file */
+    background-size: 80% 80%;
+}
+
+
+       .login-container {
+    background-color: rgba(0, 0, 0, 0); /* Adjust the last value (alpha) for transparency */
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0);
+    padding: 20px;
+    width: 300px;
+    text-align: center;
+}
+
+.login-container input {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 12px;
+    box-sizing: border-box;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 0); /* Adjust the last value for input field transparency */
+}
+
+.login-container button {
+    background-color: #B8860B;
+    color: black;
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+    font-size: 14px;
+    margin-top: 10px;
+}
+
+#username,
+#password {
+    /* Additional styling for username and password fields if needed */
+    /* You can customize the styles for these fields */
+}
+
+        }
+
+        .dashboard-container {
+            width: 80%;
+            max-width: 800px;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: #B8860B;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 12px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #B8860B;
+            color: black;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        #toggle-password {
+            position: absolute;
+            top: 35%;
+            right: 8px;
+            transform: translateY(-50%);
+            cursor: pointer;
+        }
+
+        #error-message {
+            color: #ff0000;
+            margin-bottom: 16px;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .logout-btn {
+            background-color: #d9534f;
+            color: white;
+            padding: 8px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .fund-operations {
+            margin-top: 20px;
+        }
+
+        /* Style for popup message */
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .popup-message {
+            margin-bottom: 20px;
+        }
+
+        .popup-btn {
+            background-color: #d4af37;
+            color: black;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container" id="dashboard-container" style="display: none;">
+        <h2 id="dashboard-title"></h2>
+
+        <label for="expense-category">Select Category:</label>
+        <input type="text" id="expense-category" placeholder="Category">
+
+        <label for="expense-description">Expense Description:</label>
+        <input type="text" id="expense-description" placeholder="Description">
+
+        <label for="expense-amount">Enter Expense Amount:</label>
+        <input type="number" id="expense-amount" placeholder="Amount">
+
+        <button onclick="addExpense()">Add Expense</button>
+
+        <table id="expense-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="expense-list"></tbody>
+        </table>
+
+        <div class="fund-operations">
+            <label for="fund-amount">Enter Fund Amount:</label>
+            <input type="number" id="fund-amount" placeholder="Amount">
+
+            <button onclick="addFund()">Add Fund</button>
+            <button onclick="removeFund()">Remove Fund</button>
+        </div>
+
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+
+    <div class="login-container" id="login-container">
+        <h2>Wawart</h2>
+        <div id="error-message"></div>
+        <label for="username">Username:</label>
+        <input type="text" id="username" placeholder="Enter your username">
+
+        <label for="password">Password:</label>
+        <div style="position: relative;">
+            <input type="password" id="password" placeholder="Enter your password">
+            <span id="toggle-password" onclick="togglePasswordVisibility()">👁️</span>
+        </div>
+
+        <button onclick="login()">Login</button>
+    </div>
+
+    <!-- Popup for adding expenses -->
+    <div class="popup" id="add-expense-popup">
+        <div class="popup-message">Expense added successfully!</div>
+        <button class="popup-btn" onclick="closePopup('add-expense-popup')">OK</button>
+    </div>
+
+    <!-- Popup for removing expenses -->
+    <div class="popup" id="remove-expense-popup">
+        <div class="popup-message">Expense removed successfully!</div>
+        <button class="popup-btn" onclick="closePopup('remove-expense-popup')">OK</button>
+    </div>
+
+    <!-- Popup for adding funds -->
+    <div class="popup" id="add-fund-popup">
+        <div class="popup-message">Fund added successfully!</div>
+        <button class="popup-btn" onclick="closePopup('add-fund-popup')">OK</button>
+    </div>
+
+    <!-- Popup for removing funds -->
+    <div class="popup" id="remove-fund-popup">
+        <div class="popup-message">Fund removed successfully!</div>
+        <button class="popup-btn" onclick="closePopup('remove-fund-popup')">OK</button>
+    </div>
+
+    <script>
+        function addExpense() {
+            var userPassword = prompt("Enter your password to add an expense:", "");
+
+            // Simulate server-side authentication for adding expenses
+            if (userPassword === "Cheesecake_wawart16") {
+                var expenseCategory = document.getElementById("expense-category").value;
+                var expenseDescription = document.getElementById("expense-description").value;
+                var expenseAmount = document.getElementById("expense-amount").value;
+
+                if (expenseAmount !== "") {
+                    // Get existing expenses from local storage or initialize an empty array
+                    var expenses = JSON.parse(localStorage.getItem("expenses")) || [];
+
+                    // Add the new expense
+                    expenses.push({
+                        date: new Date().toLocaleDateString(),
+                        category: expenseCategory,
+                        description: expenseDescription,
+                        amount: parseFloat(expenseAmount),
+                    });
+
+                    // Save the updated expenses to local storage
+                    localStorage.setItem("expenses", JSON.stringify(expenses));
+
+                    // Update the displayed expenses
+                    updateExpenseList(expenses);
+
+                    // Show popup message for adding expenses
+                    showPopup('add-expense-popup');
+
+                    // Clear input fields
+                    clearInputFields();
+                }
+            } else {
+                alert("Invalid password. Please try again.");
+            }
+        }
+
+        function clearInputFields() {
+            document.getElementById("expense-category").value = "";
+            document.getElementById("expense-description").value = "";
+            document.getElementById("expense-amount").value = "";
+        }
+
+        function removeExpense(date) {
+            var userPassword = prompt("Enter your password to remove this expense:", "");
+
+            // Simulate server-side authentication for removing expenses
+            if (userPassword === "Cheesecake_wawart16") {
+                // Get existing expenses from local storage or initialize an empty array
+                var expenses = JSON.parse(localStorage.getItem("expenses")) || [];
+
+                // Find the index of the expense with the given date
+                var indexToRemove = expenses.findIndex(function (expense) {
+                    return expense.date === date;
+                });
+
+                if (indexToRemove !== -1) {
+                    // Remove the expense
+                    expenses.splice(indexToRemove, 1);
+
+                    // Save the updated expenses to local storage
+                    localStorage.setItem("expenses", JSON.stringify(expenses));
+
+                    // Update the displayed expenses
+                    updateExpenseList(expenses);
+
+                    // Show popup message for removing expenses
+                    showPopup('remove-expense-popup');
+                }
+            } else {
+                alert("Invalid password. Please try again.");
+            }
+        }
+
+        function addFund() {
+            var userPassword = prompt("Enter your password to add funds:", "");
+
+            // Simulate server-side authentication for adding funds
+            if (userPassword === "Cheesecake_wawart16") {
+                var fundAmount = document.getElementById("fund-amount").value;
+
+                if (fundAmount !== "") {
+                    // Get existing funds from local storage or initialize to 0
+                    var currentFund = parseFloat(localStorage.getItem("fund")) || 0;
+
+                    // Add the new fund amount
+                    currentFund += parseFloat(fundAmount);
+
+                    // Save the updated fund amount to local storage
+                    localStorage.setItem("fund", currentFund);
+
+                    // Show popup message for adding funds
+                    showPopup('add-fund-popup');
+                }
+            } else {
+                alert("Invalid password. Please try again.");
+            }
+        }
+
+        function removeFund() {
+            var userPassword = prompt("Enter your password to remove funds:", "");
+
+            // Simulate server-side authentication for removing funds
+            if (userPassword === "Cheesecake_wawart16") {
+                var fundAmount = document.getElementById("fund-amount").value;
+
+                if (fundAmount !== "") {
+                    // Get existing funds from local storage or initialize to 0
+                    var currentFund = parseFloat(localStorage.getItem("fund")) || 0;
+
+                    // Ensure sufficient funds before removing
+                    if (currentFund >= parseFloat(fundAmount)) {
+                        // Subtract the fund amount
+                        currentFund -= parseFloat(fundAmount);
+
+                        // Save the updated fund amount to local storage
+                        localStorage.setItem("fund", currentFund);
+
+                        // Show popup message for removing funds
+                        showPopup('remove-fund-popup');
+                    } else {
+                        alert("Insufficient funds. Please enter a valid amount.");
+                    }
+                }
+            } else {
+                alert("Invalid password. Please try again.");
+            }
+        }
+
+        // Function to show a popup message
+        function showPopup(popupId) {
+            var popup = document.getElementById(popupId);
+            popup.style.display = "block";
+        }
+
+        // Function to close a popup message
+        function closePopup(popupId) {
+            var popup = document.getElementById(popupId);
+            popup.style.display = "none";
+        }
+
+       // Function to toggle password visibility
+          function togglePasswordVisibility() {
+        var togglePassword = document.getElementById("toggle-password");
+        var passwordInput = document.getElementById("password");
+
+        if (passwordInput.type === "password") {
+            passwordInput.type = "text";
+        } else {
+            passwordInput.type = "password";
+        }
+
+        // Update the text content of the toggle button
+        togglePassword.textContent = passwordInput.type === "password" ? "👁️" : "👁️";
+    }
+
+    function login() {
+    var username = document.getElementById("username").value;
+    var password = document.getElementById("password").value;
+
+    // Replace this with your authentication logic
+    if (username === "Kim" && password === "Cheesecake_wawart16") {
+        document.getElementById("login-container").style.display = "none";
+        document.getElementById("dashboard-container").style.display = "block";
+        document.getElementById("dashboard-title").innerText = "Welcome, " + username + "!";
+        loadExpenses();
+    } else {
+        document.getElementById("error-message").innerText = "Invalid username or password. Please try again.";
+    }
+}
+
+
+    function logout() {
+        document.getElementById("dashboard-container").style.display = "none";
+        document.getElementById("login-container").style.display = "block";
+        document.getElementById("error-message").innerText = "";
+    }
+
+    function loadExpenses() {
+        var expenses = JSON.parse(localStorage.getItem("expenses")) || [];
+        updateExpenseList(expenses);
+    }
+
+    function updateExpenseList(expenses) {
+        var expenseList = document.getElementById("expense-list");
+        expenseList.innerHTML = "";
+
+        for (var i = 0; i < expenses.length; i++) {
+            var expense = expenses[i];
+
+            var row = expenseList.insertRow(i);
+            var cellDate = row.insertCell(0);
+            var cellCategory = row.insertCell(1);
+            var cellDescription = row.insertCell(2);
+            var cellAmount = row.insertCell(3);
+            var cellAction = row.insertCell(4);
+
+            cellDate.innerHTML = expense.date;
+            cellCategory.innerHTML = expense.category;
+            cellDescription.innerHTML = expense.description;
+            cellAmount.innerHTML = "$" + expense.amount.toFixed(2);
+
+            var removeButton = document.createElement("button");
+            removeButton.innerText = "Remove";
+            removeButton.addEventListener("click", function () {
+                removeExpense(expense.date);
+            });
+
+            cellAction.appendChild(removeButton);
+        }
+    }
+</script>
+</body>
+</html>
